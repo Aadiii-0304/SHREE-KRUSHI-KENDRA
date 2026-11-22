@@ -4,6 +4,7 @@ import { Leaf, ArrowRight, Info } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { ProductCard } from '../components/ProductCard';
 import { WhatsAppButton } from '../components/WhatsAppButton';
+import { CropFinder } from '../components/CropFinder';
 import { products } from '../data/products';
 
 const cropInfo = {
@@ -95,14 +96,20 @@ export const CropSolutionsPage: React.FC = () => {
 
   if (!crop || !problem) {
     return (
-      <div className="min-h-screen bg-gray-50 py-20">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center">
-            <Leaf className="h-20 w-20 text-green-600 mx-auto mb-6" />
-            <h1 className="text-3xl font-bold mb-4">फसल समाधान / Crop Solutions</h1>
-            <p className="text-gray-600 mb-8">Please select crop and problem to get recommendations</p>
-            <Button onClick={() => navigate('/')}>Go to Homepage</Button>
+      <div className="min-h-screen bg-gray-50 py-10 pb-24 md:pb-12">
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="text-center mb-8">
+            <div className="inline-flex p-3 rounded-2xl bg-green-100 text-green-700 mb-3 shadow-sm">
+              <Leaf className="h-8 w-8" />
+            </div>
+            <h1 className="text-2xl sm:text-4xl font-extrabold text-gray-900 mb-2">
+              पीक सल्ला व औषध उपाय / Crop Solutions
+            </h1>
+            <p className="text-gray-600 text-sm sm:text-base max-w-xl mx-auto">
+              आपल्या पिकाचे नाव आणि समस्या निवडा, आम्ही योग्य कीटकनाशके व खतांची अचूक माहिती देऊ!
+            </p>
           </div>
+          <CropFinder />
         </div>
       </div>
     );

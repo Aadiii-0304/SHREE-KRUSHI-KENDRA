@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router';
-import { Filter, X, RefreshCw, SlidersHorizontal, ChevronDown, ChevronUp } from 'lucide-react';
+import { Filter, X, RefreshCw, SlidersHorizontal, ChevronDown, ChevronUp, Phone, Camera, Sparkles, MessageCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ProductCard } from '../components/ProductCard';
 import { products as fallbackProducts, cropTypes, brands } from '../data/products';
@@ -22,6 +22,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '../c
 import { Card } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { useLanguage } from '../context/LanguageContext';
+import { VoiceSearchButton } from '../components/VoiceSearchButton';
+import { PrescriptionOrderModal } from '../components/PrescriptionOrderModal';
 
 export const ProductsPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -41,6 +43,7 @@ export const ProductsPage: React.FC = () => {
   const [filtersVisible, setFiltersVisible] = useState(false);
   const [loading, setLoading] = useState(true);
   const [useBackend, setUseBackend] = useState(true);
+  const [prescriptionModalOpen, setPrescriptionModalOpen] = useState(false);
   
   // Accordion states for filter sections
   const [categoryOpen, setCategoryOpen] = useState(true);
@@ -604,6 +607,126 @@ export const ProductsPage: React.FC = () => {
           </div>
         </div>
 
+        {/* Farmer Quick Assistance Banner */}
+        <div className="bg-gradient-to-r from-green-700 via-green-800 to-emerald-800 rounded-2xl p-4 sm:p-5 text-white mb-6 shadow-md flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3 text-center md:text-left">
+            <div className="w-12 h-12 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
+              <Sparkles className="h-6 w-6 text-yellow-300" />
+            </div>
+            <div>
+              <p className="font-bold text-base sm:text-lg text-white">
+                {language === 'en'
+                  ? 'Having trouble finding the right product?'
+                  : language === 'hi'
+                  ? 'दवाई या खाद का नाम खोजने में परेशानी हो रही है?'
+                  : 'योग्य औषध किंवा खत सापडत नाहीये?'}
+              </p>
+              <p className="text-xs sm:text-sm text-green-100">
+                {language === 'en'
+                  ? 'Just speak to search, send your doctor slip, or call Store Helpline directly!'
+                  : language === 'hi'
+                  ? 'बोलकर खोजें, डॉक्टर की पर्ची भेजें या सीधे हेल्पलाइन पर कॉल करें!'
+                  : 'बोलून शोधा, चिठ्ठीचा फोटो पाठवा किंवा थेट हेल्पलाइनवर कॉल करा!'}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <VoiceSearchButton size="default" />
+            
+            <Button
+              onClick={() => setPrescriptionModalOpen(true)}
+              className="bg-yellow-400 hover:bg-yellow-500 text-gray-950 font-bold text-xs sm:text-sm h-10 gap-1.5 shadow"
+            >
+              <Camera className="h-4 w-4" />
+              <span>
+                {language === 'en'
+                  ? 'Send Slip'
+                  : language === 'hi'
+                  ? 'पर्ची भेजें'
+                  : 'चिठ्ठी पाठवा'}
+              </span>
+            </Button>
+
+            <a href="tel:+917219437160">
+              <Button
+                variant="outline"
+                className="bg-white/20 hover:bg-white/30 text-white border-white/40 font-bold text-xs sm:text-sm h-10 gap-1.5"
+              >
+                <Phone className="h-4 w-4" />
+                <span>
+                  {language === 'en'
+                    ? 'Call Store'
+                    : language === 'hi'
+                    ? 'फोन करें'
+                    : 'थेट फोन'}
+                </span>
+              </Button>
+            </a>
+          </div>
+        </div>
+
+        {/* Quick Crop Selection Buttons for Farmers */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs sm:text-sm font-bold text-gray-800 flex items-center gap-1.5">
+              <span>🌾</span>
+              <span>
+                {language === 'en'
+                  ? 'Quick Crop Filter (Tap your crop):'
+                  : language === 'hi'
+                  ? 'अपनी फसल चुनें (झटपट फ़िल्टर):'
+                  : 'पिकांनुसार झटपट निवडा (पीक निवडा):'}
+              </span>
+            </span>
+            {selectedCrops.length > 0 && (
+              <button
+                onClick={() => setSelectedCrops([])}
+                className="text-xs text-green-700 hover:underline font-semibold"
+              >
+                {language === 'en' ? 'Show All' : 'सर्व दाखवा'}
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-thin">
+            {[
+              { id: 'all', emoji: '🌾', label: language === 'en' ? 'All Crops' : language === 'hi' ? 'सभी फसलें' : 'सर्व पिके', value: '' },
+              { id: 'cotton', emoji: '🌱', label: language === 'en' ? 'Cotton' : language === 'hi' ? 'कपास' : 'कापूस', value: 'Cotton' },
+              { id: 'soybean', emoji: '🫘', label: language === 'en' ? 'Soybean' : language === 'hi' ? 'सोयाबीन' : 'सोयाबीन', value: 'Soybean' },
+              { id: 'wheat', emoji: '🌾', label: language === 'en' ? 'Wheat' : language === 'hi' ? 'गेहूं' : 'गहू', value: 'Wheat' },
+              { id: 'rice', emoji: '🍚', label: language === 'en' ? 'Paddy / Rice' : language === 'hi' ? 'धान' : 'भात', value: 'Rice' },
+              { id: 'sugarcane', emoji: '🎋', label: language === 'en' ? 'Sugarcane' : language === 'hi' ? 'गन्ना' : 'ऊस', value: 'Sugarcane' },
+              { id: 'vegetables', emoji: '🥬', label: language === 'en' ? 'Vegetables' : language === 'hi' ? 'सब्जियां' : 'भाज्या', value: 'Vegetables' },
+            ].map((crop) => {
+              const isSelected =
+                crop.value === ''
+                  ? selectedCrops.length === 0
+                  : selectedCrops.includes(crop.value);
+
+              return (
+                <button
+                  key={crop.id}
+                  onClick={() => {
+                    if (crop.value === '') {
+                      setSelectedCrops([]);
+                    } else {
+                      toggleCrop(crop.value);
+                    }
+                  }}
+                  className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all shadow-sm ${
+                    isSelected
+                      ? 'bg-green-700 text-white shadow-md scale-105 ring-2 ring-green-300'
+                      : 'bg-white hover:bg-green-50 text-gray-700 border border-gray-200'
+                  }`}
+                >
+                  <span className="text-base">{crop.emoji}</span>
+                  <span>{crop.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Active Filters Display */}
         {hasActiveFilters && (
           <Card className="p-4 mb-6 bg-green-50 border-green-200">
@@ -768,6 +891,12 @@ export const ProductsPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Prescription Order Modal for Farmers */}
+      <PrescriptionOrderModal
+        open={prescriptionModalOpen}
+        onOpenChange={setPrescriptionModalOpen}
+      />
     </div>
   );
 };

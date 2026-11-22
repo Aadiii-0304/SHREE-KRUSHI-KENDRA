@@ -12,14 +12,23 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [language, setLanguageState] = useState<Language>(() => {
-    // Get language from localStorage or default to English
-    const saved = localStorage.getItem('language');
-    return (saved as Language) || 'en';
+    try {
+      const saved = localStorage.getItem('language');
+      if (saved === 'en' || saved === 'hi' || saved === 'mr') {
+        return saved;
+      }
+      return 'en';
+    } catch {
+      return 'en';
+    }
   });
 
   useEffect(() => {
-    // Save language to localStorage whenever it changes
-    localStorage.setItem('language', language);
+    try {
+      localStorage.setItem('language', language);
+    } catch (e) {
+      console.warn('Failed to save language to localStorage:', e);
+    }
   }, [language]);
 
   const setLanguage = (lang: Language) => {
@@ -225,6 +234,22 @@ const translations: Record<Language, any> = {
       submit: 'Submit',
       reset: 'Reset',
     },
+    farmer: {
+      quickActions: 'Farmer Quick Actions',
+      callStore: 'Call Inquiry',
+      callStoreSubtitle: 'Helpline: +91 7219437160',
+      orderWhatsApp: 'Order on WhatsApp',
+      orderWhatsAppSubtitle: 'Send name or list & get delivery',
+      sendPrescription: 'Send Slip / Prescription',
+      sendPrescriptionSubtitle: 'Send doctor slip photo on WhatsApp',
+      cropDoctor: 'Crop Doctor Advice',
+      cropDoctorSubtitle: 'Cotton, Soybean, Wheat solutions',
+      voiceSearch: 'Voice Search',
+      voiceSearchSubtitle: 'Tap mic and speak product name',
+      orderOnWhatsApp: 'Order on WhatsApp',
+      callToOrder: 'Call Store to Order',
+      allCrops: 'All Crops',
+    },
   },
   hi: {
     nav: {
@@ -392,6 +417,22 @@ const translations: Record<Language, any> = {
       submit: 'जमा करें',
       reset: 'रीसेट करें',
     },
+    farmer: {
+      quickActions: 'किसान त्वरित सेवाएं',
+      callStore: 'कॉल पूछताछ',
+      callStoreSubtitle: 'हेल्पलाइन: +91 7219437160',
+      orderWhatsApp: 'WhatsApp पर ऑर्डर करें',
+      orderWhatsAppSubtitle: 'नाम या लिस्ट भेजें और डिलीवरी पाएं',
+      sendPrescription: 'पर्ची / प्रिस्क्रिप्शन भेजें',
+      sendPrescriptionSubtitle: 'डॉक्टर की पर्ची का फोटो भेजें',
+      cropDoctor: 'फसल डॉक्टर सलाह',
+      cropDoctorSubtitle: 'कपास, सोयाबीन, गेहूं समाधान',
+      voiceSearch: 'बोलकर खोजें',
+      voiceSearchSubtitle: 'माइक दबाकर उत्पाद का नाम बोलें',
+      orderOnWhatsApp: 'WhatsApp पर मंगाएं',
+      callToOrder: 'फोन करके ऑर्डर करें',
+      allCrops: 'सभी फसलें',
+    },
   },
   mr: {
     nav: {
@@ -558,6 +599,22 @@ const translations: Record<Language, any> = {
       previous: 'मागील',
       submit: 'सबमिट करा',
       reset: 'रीसेट करा',
+    },
+    farmer: {
+      quickActions: 'शेतकऱ्यांसाठी जलद पर्याय',
+      callStore: 'फोन चौकशी',
+      callStoreSubtitle: 'हेल्पलाइन: +91 7219437160',
+      orderWhatsApp: 'व्हॉट्सॲपवर ऑर्डर करा',
+      orderWhatsAppSubtitle: 'नाव किंवा यादी पाठवून घरपोच मागवा',
+      sendPrescription: 'चिठ्ठी / प्रिस्क्रिप्शन पाठवा',
+      sendPrescriptionSubtitle: 'कृषी डॉक्टरांच्या चिठ्ठीचा फोटो पाठवा',
+      cropDoctor: 'पीक डॉक्टर सल्ला',
+      cropDoctorSubtitle: 'कापूस, सोयाबीन, गहू रोगांवर अचूक उपाय',
+      voiceSearch: 'बोलून औषधे शोधा',
+      voiceSearchSubtitle: 'माइक दाबून औषधाचे नाव बोला',
+      orderOnWhatsApp: 'WhatsApp वर मागवा',
+      callToOrder: 'फोन करून ऑर्डर करा',
+      allCrops: 'सर्व पिके',
     },
   },
 };

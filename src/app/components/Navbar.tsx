@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Button } from './ui/button';
 import { LanguageSwitcher } from './LanguageSwitcher';
+import { VoiceSearchButton } from './VoiceSearchButton';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,7 +17,7 @@ import {
 export const Navbar: React.FC = () => {
   const { getCartCount } = useCart();
   const { user, logout, isAuthenticated } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
@@ -52,11 +53,11 @@ export const Navbar: React.FC = () => {
       <div className="bg-gradient-to-r from-green-800 to-green-700 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-9 text-xs">
-            {/* Contact Information */}
-            <div className="flex items-center gap-4">
-              <a href="tel:+919876543210" className="flex items-center gap-1.5 hover:text-yellow-300 transition-colors">
+            {/* Contact Information & Helpline */}
+            <div className="flex items-center gap-3">
+              <a href="tel:+917219437160" className="flex items-center gap-1.5 bg-yellow-400 hover:bg-yellow-300 text-gray-950 font-bold px-2 py-0.5 rounded text-[11px] transition-colors shadow-sm">
                 <Phone className="h-3 w-3" />
-                <span className="hidden sm:inline">+91 9730724497</span>
+                <span>{language === 'en' ? 'Helpline:' : language === 'hi' ? 'हेल्पलाइन:' : 'थेट कॉल:'} +91 7219437160</span>
               </a>
               <a href="mailto:contact@shreekrishi.com" className="hidden md:flex items-center gap-1.5 hover:text-yellow-300 transition-colors">
                 <Mail className="h-3 w-3" />
@@ -64,7 +65,7 @@ export const Navbar: React.FC = () => {
               </a>
               <Link to="/contact" className="hidden lg:flex items-center gap-1.5 hover:text-yellow-300 transition-colors">
                 <MapPin className="h-3 w-3" />
-                <span>Visit Our Store</span>
+                <span>{language === 'en' ? 'Jamod Store' : 'जामोद दुकान'}</span>
               </Link>
             </div>
 
@@ -142,21 +143,32 @@ export const Navbar: React.FC = () => {
 
           {/* Desktop Search & Cart */}
           <div className="hidden md:flex items-center gap-2 flex-shrink-0">
-            <form onSubmit={handleSearch} className="w-64">
-              <div className="relative">
+            <form onSubmit={handleSearch} className="w-72">
+              <div className="relative flex items-center">
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={t('nav.search')}
-                  className="w-full px-4 py-2 border-2 border-green-300 rounded-lg focus:outline-none focus:border-green-500"
+                  className="w-full pl-3 pr-16 py-2 border-2 border-green-300 rounded-lg focus:outline-none focus:border-green-500 text-sm"
                 />
-                <button
-                  type="submit"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-green-600 text-white p-1.5 rounded hover:bg-green-700"
-                >
-                  <Search className="h-4 w-4" />
-                </button>
+                <div className="absolute right-1 flex items-center gap-0.5">
+                  <VoiceSearchButton
+                    iconOnly
+                    size="sm"
+                    onTranscript={(text) => {
+                      setSearchQuery(text);
+                      navigate(`/products?search=${encodeURIComponent(text)}`);
+                    }}
+                  />
+                  <button
+                    type="submit"
+                    className="bg-green-600 text-white p-1.5 rounded hover:bg-green-700"
+                    title="Search"
+                  >
+                    <Search className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             </form>
 
@@ -172,8 +184,17 @@ export const Navbar: React.FC = () => {
             </Link>
           </div>
 
-          {/* Mobile Cart & Menu Button */}
-          <div className="flex md:hidden items-center gap-2">
+          {/* Mobile Cart & Call & Menu Button */}
+          <div className="flex md:hidden items-center gap-1.5">
+            <a
+              href="tel:+917219437160"
+              className="p-2 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-lg flex items-center justify-center transition-colors"
+              title="Call Store"
+              aria-label="Call Store"
+            >
+              <Phone className="h-5 w-5 text-amber-800" />
+            </a>
+
             <Link to="/cart">
               <Button variant="ghost" size="sm" className="relative">
                 <ShoppingCart className="h-5 w-5" />
@@ -193,22 +214,33 @@ export const Navbar: React.FC = () => {
           </div>
         </div>
 
-        {/* Mobile Search */}
+        {/* Mobile Search with Voice Search Button */}
         <form onSubmit={handleSearch} className="md:hidden py-3 border-t border-gray-100">
-          <div className="relative">
+          <div className="relative flex items-center">
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={t('nav.search')}
-              className="w-full px-4 py-3 border-2 border-green-300 rounded-xl focus:outline-none focus:border-green-500 text-base"
+              className="w-full pl-4 pr-20 py-2.5 border-2 border-green-300 rounded-xl focus:outline-none focus:border-green-500 text-base"
             />
-            <button
-              type="submit"
-              className="absolute right-2 top-1/2 -translate-y-1/2 bg-green-600 text-white p-2.5 rounded-lg hover:bg-green-700"
-            >
-              <Search className="h-5 w-5" />
-            </button>
+            <div className="absolute right-1.5 flex items-center gap-1">
+              <VoiceSearchButton
+                iconOnly
+                size="default"
+                onTranscript={(text) => {
+                  setSearchQuery(text);
+                  navigate(`/products?search=${encodeURIComponent(text)}`);
+                }}
+              />
+              <button
+                type="submit"
+                className="bg-green-600 text-white p-2 rounded-lg hover:bg-green-700"
+                title="Search"
+              >
+                <Search className="h-5 w-5" />
+              </button>
+            </div>
           </div>
         </form>
       </div>

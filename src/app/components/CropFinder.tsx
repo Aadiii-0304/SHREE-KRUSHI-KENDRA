@@ -63,13 +63,33 @@ export const CropFinder: React.FC = () => {
           <label className="block text-sm font-semibold text-gray-700 mb-2">
             फसल चुनें / Select Crop *
           </label>
+          
+          {/* 1-Tap Quick Crop Buttons for Farmers */}
+          <div className="flex flex-wrap gap-1.5 mb-2.5">
+            {crops.map((c) => (
+              <button
+                key={c.value}
+                type="button"
+                onClick={() => setCrop(c.value)}
+                className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all shadow-sm ${
+                  crop === c.value
+                    ? 'bg-green-700 text-white shadow-md scale-105 ring-2 ring-green-400'
+                    : 'bg-green-50 text-gray-800 hover:bg-green-100 border border-green-200'
+                }`}
+              >
+                <span className="text-base">{c.icon}</span>
+                <span>{c.label.split('/')[0].trim()}</span>
+              </button>
+            ))}
+          </div>
+
           <Select value={crop} onValueChange={setCrop}>
-            <SelectTrigger className="w-full h-14 text-base border-2 border-gray-300 focus:border-green-500">
-              <SelectValue placeholder="अपनी फसल चुनें / Choose your crop" />
+            <SelectTrigger className="w-full h-12 text-sm border-2 border-gray-300 focus:border-green-500">
+              <SelectValue placeholder="किंवा यादीतून निवडा / Or select from dropdown" />
             </SelectTrigger>
             <SelectContent>
               {crops.map((c) => (
-                <SelectItem key={c.value} value={c.value} className="py-3 text-base">
+                <SelectItem key={c.value} value={c.value} className="py-2.5 text-sm">
                   <span className="flex items-center gap-2">
                     <span>{c.icon}</span>
                     <span>{c.label}</span>
@@ -82,15 +102,34 @@ export const CropFinder: React.FC = () => {
 
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
-            समस्या चुनें / Select Problem *
+            समस्या निवडा / Select Problem *
           </label>
+
+          {/* 1-Tap Quick Problem Buttons for Farmers */}
+          <div className="flex flex-wrap gap-1.5 mb-2.5">
+            {problems.map((p) => (
+              <button
+                key={p.value}
+                type="button"
+                onClick={() => setProblem(p.value)}
+                className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-sm ${
+                  problem === p.value
+                    ? 'bg-emerald-700 text-white shadow-md scale-105 ring-2 ring-emerald-400'
+                    : 'bg-gray-100 text-gray-800 hover:bg-emerald-50 border border-gray-200'
+                }`}
+              >
+                {p.label.split('/')[0].trim()}
+              </button>
+            ))}
+          </div>
+
           <Select value={problem} onValueChange={setProblem}>
-            <SelectTrigger className="w-full h-14 text-base border-2 border-gray-300 focus:border-green-500">
-              <SelectValue placeholder="समस्या चुनें / Choose problem" />
+            <SelectTrigger className="w-full h-12 text-sm border-2 border-gray-300 focus:border-green-500">
+              <SelectValue placeholder="किंवा यादीतून समस्या निवडा / Or select from dropdown" />
             </SelectTrigger>
             <SelectContent>
               {problems.map((p) => (
-                <SelectItem key={p.value} value={p.value} className="py-3 text-base">
+                <SelectItem key={p.value} value={p.value} className="py-2.5 text-sm">
                   {p.label}
                 </SelectItem>
               ))}

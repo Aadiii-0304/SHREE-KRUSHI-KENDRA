@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router';
-import { Sprout, Droplet, ChevronRight, Star, MapPin, Clock, Shield, Award, Phone } from 'lucide-react';
+import { Sprout, Droplet, ChevronRight, Star, MapPin, Clock, Shield, Award, Phone, MessageCircle, ShoppingBag } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { CropFinder } from '../components/CropFinder';
 import { WhatsAppButton, FloatingWhatsAppButton } from '../components/WhatsAppButton';
@@ -11,6 +11,7 @@ import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { AllPagesShowcase } from '../components/AllPagesShowcase';
 import { SEO } from '../components/SEO';
 import { useLanguage } from '../context/LanguageContext';
+import { FarmerQuickActions } from '../components/FarmerQuickActions';
 
 export const NewHomepage: React.FC = () => {
   const { language } = useLanguage();
@@ -70,10 +71,10 @@ export const NewHomepage: React.FC = () => {
       name: language === 'en' ? 'Rajesh Patil' : language === 'hi' ? 'राजेश पाटील' : 'राजेश पाटील',
       village: language === 'en' ? 'Jamod, Cotton Farmer' : language === 'hi' ? 'जामोद, कपास किसान' : 'जामोद, कापूस उत्पादक शेतकरी',
       text: language === 'en' 
-        ? 'Best products and right advice. Mohan bhai always gives correct guidance.' 
+        ? 'Best products and right advice. Shree Krushi Kendra always gives correct guidance.' 
         : language === 'hi' 
-        ? 'सबसे अच्छे उत्पाद और सही सलाह। मोहन भाई हमेशा सही मार्गदर्शन देते हैं।' 
-        : 'उत्कृष्ट उत्पादने आणि योग्य सल्ला. मोहन भाई नेहमीच योग्य मार्गदर्शन करतात.',
+        ? 'सबसे अच्छे उत्पाद और सही सलाह। श्री कृषि केंद्र हमेशा सही मार्गदर्शन देता है।' 
+        : 'उत्कृष्ट उत्पादने आणि योग्य सल्ला. श्री कृषी केंद्र नेहमीच योग्य मार्गदर्शन करते.',
       rating: 5,
       image: 'https://images.unsplash.com/photo-1623211269755-569fec0536d2',
     },
@@ -163,14 +164,32 @@ export const NewHomepage: React.FC = () => {
               </div>
             </div>
             
-            {/* Owner Info */}
-            <div className="bg-white/10 backdrop-blur-sm border-2 border-white/20 rounded-xl p-4 inline-block">
-              <p className="text-sm text-green-100 mb-1">
-                {language === 'en' ? 'Owner' : language === 'hi' ? 'संचालक' : 'मालक'}
-              </p>
-              <p className="text-xl font-bold">
-                {language === 'en' ? 'Mohan Damdhar' : 'मोहन दामधर'}
-              </p>
+            {/* Owner Info & Quick Hero Buttons */}
+            <div className="flex flex-wrap items-center gap-4 mb-6">
+              <div className="bg-white/10 backdrop-blur-sm border-2 border-white/20 rounded-xl p-3 inline-block">
+                <p className="text-xs text-green-100 mb-0.5">
+                  {language === 'en' ? 'Owner' : language === 'hi' ? 'संचालक' : 'मालक'}
+                </p>
+                <p className="text-lg font-bold">
+                  {language === 'en' ? 'Mohan Damdhar' : 'मोहन दामधर'}
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2.5">
+                <Link to="/products">
+                  <Button className="bg-yellow-400 hover:bg-yellow-500 text-gray-950 font-bold px-5 py-6 rounded-xl shadow-lg flex items-center gap-2 text-sm sm:text-base">
+                    <ShoppingBag className="h-5 w-5" />
+                    {language === 'en' ? 'Browse Products' : language === 'hi' ? 'उत्पाद देखें' : 'उत्पादने पहा'}
+                  </Button>
+                </Link>
+
+                <a href="tel:+917219437160">
+                  <Button variant="outline" className="bg-white/20 hover:bg-white/30 text-white border-2 border-white/50 font-bold px-4 py-6 rounded-xl backdrop-blur-sm flex items-center gap-2 text-sm sm:text-base">
+                    <Phone className="h-5 w-5" />
+                    {language === 'en' ? 'Call Store' : language === 'hi' ? 'फोन करें' : 'थेट फोन करा'}
+                  </Button>
+                </a>
+              </div>
             </div>
           </div>
         </div>
@@ -179,8 +198,13 @@ export const NewHomepage: React.FC = () => {
       {/* Trust Badges */}
       <TrustBadges />
 
+      {/* Farmer Quick Action Buttons Section */}
+      <div className="max-w-7xl mx-auto px-4 -mt-4 relative z-20">
+        <FarmerQuickActions />
+      </div>
+
       {/* Crop Finder Section */}
-      <section className="max-w-7xl mx-auto px-4 py-8 -mt-8 relative z-10 md:mt-0">
+      <section className="max-w-7xl mx-auto px-4 py-6 relative z-10">
         <CropFinder />
       </section>
 
@@ -445,9 +469,6 @@ export const NewHomepage: React.FC = () => {
 
       {/* All Pages Showcase */}
       <AllPagesShowcase />
-
-      {/* Floating WhatsApp Button */}
-      <FloatingWhatsAppButton />
     </div>
   );
 };

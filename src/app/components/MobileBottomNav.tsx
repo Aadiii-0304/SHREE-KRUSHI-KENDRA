@@ -2,18 +2,41 @@ import React from 'react';
 import { Link, useLocation } from 'react-router';
 import { Home, Grid3x3, Leaf, Phone, ShoppingCart } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export const MobileBottomNav: React.FC = () => {
   const location = useLocation();
   const { getCartCount } = useCart();
+  const { language, t } = useLanguage();
   const itemCount = getCartCount();
 
   const tabs = [
-    { icon: Home, label: 'Home', path: '/' },
-    { icon: Grid3x3, label: 'Categories', path: '/products' },
-    { icon: Leaf, label: 'Crop Solutions', path: '/crop-solutions' },
-    { icon: Phone, label: 'Expert Help', path: '/expert-help' },
-    { icon: ShoppingCart, label: 'Cart', path: '/cart', badge: itemCount },
+    {
+      icon: Home,
+      label: language === 'en' ? 'Home' : language === 'hi' ? 'होम' : 'मुख्य',
+      path: '/',
+    },
+    {
+      icon: Grid3x3,
+      label: language === 'en' ? 'Products' : language === 'hi' ? 'उत्पाद' : 'उत्पादने',
+      path: '/products',
+    },
+    {
+      icon: Leaf,
+      label: language === 'en' ? 'Crops' : language === 'hi' ? 'फसल' : 'पीक उपाय',
+      path: '/crop-solutions',
+    },
+    {
+      icon: Phone,
+      label: language === 'en' ? 'Help' : language === 'hi' ? 'सहायता' : 'मदत',
+      path: '/expert-help',
+    },
+    {
+      icon: ShoppingCart,
+      label: language === 'en' ? 'Cart' : language === 'hi' ? 'कार्ट' : 'कार्ट',
+      path: '/cart',
+      badge: itemCount,
+    },
   ];
 
   return (

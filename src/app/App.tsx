@@ -6,6 +6,7 @@ import {
   Navigate,
 } from "react-router";
 import { Toaster } from "sonner";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { CartProvider } from "./context/CartContext";
 import { AuthProvider } from "./context/AuthContext";
 import { LanguageProvider } from "./context/LanguageContext";
@@ -14,6 +15,7 @@ import { Navbar } from "./components/Navbar";
 import { Footer } from "./components/Footer";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { MobileBottomNav } from "./components/MobileBottomNav";
+import { FarmerQuickHelpFloat } from "./components/FarmerQuickHelpFloat";
 import { NewHomepage } from "./pages/NewHomepage";
 import { CropSolutionsPage } from "./pages/CropSolutionsPage";
 import { ExpertHelpPage } from "./pages/ExpertHelpPage";
@@ -55,23 +57,27 @@ const PublicLayout: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   return (
-    <div className="flex flex-col min-h-screen">
-      <Navbar />
-      <main className="flex-1">{children}</main>
-      <Footer />
-      <MobileBottomNav />
-    </div>
+    <ErrorBoundary>
+      <div className="flex flex-col min-h-screen">
+        <Navbar />
+        <main className="flex-1">{children}</main>
+        <Footer />
+        <FarmerQuickHelpFloat />
+        <MobileBottomNav />
+      </div>
+    </ErrorBoundary>
   );
 };
 
 function App() {
   return (
-    <Router>
-      <AuthProvider>
-        <CartProvider>
-          <LanguageProvider>
-            <ScrollToTop />
-            <Routes>
+    <ErrorBoundary>
+      <Router>
+        <AuthProvider>
+          <CartProvider>
+            <LanguageProvider>
+              <ScrollToTop />
+              <Routes>
               {/* Public Routes */}
               <Route
                 path="/"
@@ -345,7 +351,8 @@ function App() {
         </CartProvider>
       </AuthProvider>
     </Router>
-  );
+  </ErrorBoundary>
+);
 }
 
 export default App;

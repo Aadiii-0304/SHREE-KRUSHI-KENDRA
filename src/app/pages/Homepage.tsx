@@ -48,7 +48,7 @@ export const Homepage: React.FC = () => {
     {
       name: 'Rajesh Patil',
       location: 'Cotton Farmer, Jamod',
-      text: 'Best quality pesticides and fertilizers. Mohan bhai always gives the right advice for crop protection.',
+      text: 'Best quality pesticides and fertilizers. Shri Mohan Damdhar always gives the right advice for crop protection.',
       rating: 5,
     },
     {

@@ -35,21 +35,9 @@ export const WhatsAppButton: React.FC<WhatsAppButtonProps> = ({
   );
 };
 
+import { FarmerQuickHelpFloat } from './FarmerQuickHelpFloat';
+
 export const FloatingWhatsAppButton: React.FC = () => {
-  return (
-    <div className="fixed bottom-20 right-4 z-40 md:bottom-6">
-      <button
-        onClick={() => {
-          const message = encodeURIComponent('नमस्ते, मुझे कृषि उत्पादों के बारे में जानकारी चाहिए।');
-          window.open(`https://wa.me/917219437160?text=${message}`, '_blank');
-        }}
-        className="whatsapp-green text-white rounded-full p-4 shadow-2xl hover:scale-110 transition-transform flex items-center gap-3 pr-6"
-        aria-label="WhatsApp पर संपर्क करें"
-      >
-        <MessageCircle className="h-7 w-7" />
-        <span className="font-semibold text-base hidden sm:inline">Expert से बात करें</span>
-      </button>
-    </div>
-  );
+  return <FarmerQuickHelpFloat />;
 };
 

@@ -16,24 +16,32 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Initialize default admin user
 const initializeDefaultAdmin = () => {
-  const savedUsers = localStorage.getItem('users');
-  const users = savedUsers ? JSON.parse(savedUsers) : [];
-  
-  // Check if admin already exists
-  const adminExists = users.find((u: any) => u.email === 'contactshreekrushikendra@gmail.com');
-  
-  if (!adminExists) {
-    const defaultAdmin = {
-      id: 'admin-001',
-      name: 'Mohan Damdhar',
-      email: 'contactshreekrushikendra@gmail.com',
-      mobile: '9730724497',
-      address: 'Shree Krushi Kendra, Maharashtra',
-      password: '@shree_0508', // In production, this should be hashed
-      role: 'ADMIN',
-    };
-    users.push(defaultAdmin);
-    localStorage.setItem('users', JSON.stringify(users));
+  try {
+    const savedUsers = localStorage.getItem('users');
+    const users = savedUsers ? JSON.parse(savedUsers) : [];
+    
+    // Check if admin already exists
+    const adminExists = Array.isArray(users) && users.find((u: any) => u?.email === 'contactshreekrushikendra@gmail.com');
+    
+    if (!adminExists) {
+      const defaultAdmin = {
+        id: 'admin-001',
+        name: 'Mohan Damdhar',
+        email: 'contactshreekrushikendra@gmail.com',
+        mobile: '9730724497',
+        address: 'Shree Krushi Kendra, Maharashtra',
+        password: '@shree_0508', // In production, this should be hashed
+        role: 'ADMIN',
+      };
+      if (Array.isArray(users)) {
+        users.push(defaultAdmin);
+        localStorage.setItem('users', JSON.stringify(users));
+      } else {
+        localStorage.setItem('users', JSON.stringify([defaultAdmin]));
+      }
+    }
+  } catch (e) {
+    console.warn('Failed to initialize admin from localStorage:', e);
   }
 };
 
@@ -44,25 +52,41 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const [user, setUser] = useState<User | null>(() => {
-    const savedUser = localStorage.getItem('user');
-    return savedUser ? JSON.parse(savedUser) : null;
+    try {
+      const savedUser = localStorage.getItem('user');
+      return savedUser ? JSON.parse(savedUser) : null;
+    } catch {
+      return null;
+    }
   });
 
   const [orders, setOrders] = useState<Order[]>(() => {
-    const savedOrders = localStorage.getItem('orders');
-    return savedOrders ? JSON.parse(savedOrders) : [];
+    try {
+      const savedOrders = localStorage.getItem('orders');
+      return savedOrders ? JSON.parse(savedOrders) : [];
+    } catch {
+      return [];
+    }
   });
 
   useEffect(() => {
-    if (user) {
-      localStorage.setItem('user', JSON.stringify(user));
-    } else {
-      localStorage.removeItem('user');
+    try {
+      if (user) {
+        localStorage.setItem('user', JSON.stringify(user));
+      } else {
+        localStorage.removeItem('user');
+      }
+    } catch (e) {
+      console.warn('Failed to save user to localStorage:', e);
     }
   }, [user]);
 
   useEffect(() => {
-    localStorage.setItem('orders', JSON.stringify(orders));
+    try {
+      localStorage.setItem('orders', JSON.stringify(orders));
+    } catch (e) {
+      console.warn('Failed to save orders to localStorage:', e);
+    }
   }, [orders]);
 
   const login = async (email: string, password: string): Promise<boolean> => {

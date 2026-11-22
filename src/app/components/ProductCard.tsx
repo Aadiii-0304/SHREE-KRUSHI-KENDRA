@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router';
-import { ShoppingCart, Star } from 'lucide-react';
+import { ShoppingCart, Star, MessageCircle } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Product } from '../types';
 import { Button } from './ui/button';
@@ -20,6 +20,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     addToCart(product);
     const addedMsg = language === 'en' 
       ? `${product.name} added to cart!` 
@@ -27,6 +28,19 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       ? `${product.name} कार्ट में जोड़ा गया!` 
       : `${product.name} कार्टमध्ये जोडले गेले!`;
     toast.success(addedMsg);
+  };
+
+  const handleWhatsAppOrder = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const text =
+      language === 'en'
+        ? `Hello Shree Krushi Kendra, I want to order this product:\n📦 Product: ${product.name}\n💰 Price: ₹${product.price}\nPlease confirm availability and delivery.`
+        : language === 'hi'
+        ? `नमस्ते, मुझे श्री कृषि केंद्र से यह उत्पाद मंगाना है:\n📦 उत्पाद: ${product.name}\n💰 कीमत: ₹${product.price}\nकृपया उपलब्धता और डिलीवरी बताएं।`
+        : `नमस्कार, मला श्री कृषी केंद्राकडून हे उत्पादन मागवायचे आहे:\n📦 नाव: ${product.name}\n💰 दर: ₹${product.price}\nकृपया उपलब्धता व डिलिव्हरी सांगा.`;
+
+    window.open(`https://wa.me/917219437160?text=${encodeURIComponent(text)}`, '_blank');
   };
 
   const getCategoryColor = (category: string) => {
@@ -151,13 +165,26 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
               )}
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex items-center gap-1.5 mt-1">
               <Button
                 onClick={handleAddToCart}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-xs sm:text-sm py-2"
+                variant="outline"
+                className="flex-1 border-green-600 text-green-700 hover:bg-green-50 text-xs py-2 px-2 h-9 font-semibold"
+                title={language === 'en' ? 'Add to Cart' : language === 'hi' ? 'कार्ट में जोड़ें' : 'कार्टमध्ये जोडा'}
               >
-                <ShoppingCart className="h-4 w-4 mr-2" />
-                {language === 'en' ? 'Add to Cart' : language === 'hi' ? 'कार्ट में डालें' : 'कार्टमध्ये जोडा'}
+                <ShoppingCart className="h-3.5 w-3.5 mr-1 shrink-0" />
+                <span className="truncate">
+                  {language === 'en' ? 'Add' : language === 'hi' ? 'कार्ट' : 'कार्ट'}
+                </span>
+              </Button>
+
+              <Button
+                onClick={handleWhatsAppOrder}
+                className="flex-1 bg-[#25d366] hover:bg-[#20ba5a] text-white text-xs py-2 px-2 h-9 font-bold shadow-sm"
+                title={language === 'en' ? 'Order on WhatsApp' : language === 'hi' ? 'WhatsApp पर मंगाएं' : 'WhatsApp वर मागवा'}
+              >
+                <MessageCircle className="h-3.5 w-3.5 mr-1 shrink-0" />
+                <span className="truncate">WhatsApp</span>
               </Button>
             </div>
           </div>

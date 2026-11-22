@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
-import { ShoppingCart, Star, Minus, Plus, Package, Truck, ShieldCheck, Check, MessageCircle } from 'lucide-react';
+import { ShoppingCart, Star, Minus, Plus, Package, Truck, ShieldCheck, Check, MessageCircle, Phone, Sparkles } from 'lucide-react';
 import { motion } from 'motion/react';
 import { products } from '../data/products';
 import { Button } from '../components/ui/button';
@@ -69,6 +69,18 @@ export const ProductDetailPage: React.FC = () => {
   const handleBuyNow = () => {
     addToCart(product, quantity, selectedVariant);
     navigate('/cart');
+  };
+
+  const handleWhatsAppOrder = () => {
+    const variantText = selectedVariant ? ` (${selectedVariant.size}${selectedVariant.unit})` : '';
+    const text =
+      language === 'en'
+        ? `Hello Shree Krushi Kendra, I want to order from Shree Krushi Kendra:\n📦 Product: ${product.name}${variantText}\n🔢 Quantity: ${quantity}\n💰 Total: ₹${currentPrice * quantity}\nPlease confirm availability and home delivery.`
+        : language === 'hi'
+        ? `नमस्ते, मुझे श्री कृषि केंद्र से यह उत्पाद मंगाना है:\n📦 उत्पाद: ${product.name}${variantText}\n🔢 मात्रा: ${quantity}\n💰 कुल मूल्य: ₹${currentPrice * quantity}\nकृपया उपलब्धता और डिलीवरी बताएं।`
+        : `नमस्कार, मला श्री कृषी केंद्राकडून हे उत्पादन मागवायचे आहे:\n📦 नाव: ${product.name}${variantText}\n🔢 नग: ${quantity}\n💰 एकूण दर: ₹${currentPrice * quantity}\nकृपया उपलब्धता व डिलिव्हरी सांगा.`;
+
+    window.open(`https://wa.me/917219437160?text=${encodeURIComponent(text)}`, '_blank');
   };
 
   return (
@@ -256,13 +268,13 @@ export const ProductDetailPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4">
+          {/* Standard Cart & Buy Buttons */}
+          <div className="flex flex-col sm:flex-row gap-3">
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-1">
               <Button
                 size="lg"
                 onClick={handleAddToCart}
-                className="w-full gap-2 bg-green-600 hover:bg-green-700"
+                className="w-full gap-2 bg-green-700 hover:bg-green-800 text-white font-bold h-12"
                 disabled={currentStock === 0}
               >
                 <ShoppingCart className="h-5 w-5" />
@@ -273,12 +285,71 @@ export const ProductDetailPage: React.FC = () => {
               <Button
                 size="lg"
                 onClick={handleBuyNow}
-                className="w-full bg-yellow-50 text-gray-900 hover:bg-yellow-400"
+                className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-950 font-bold h-12 shadow-sm"
                 disabled={currentStock === 0}
               >
                 {language === 'en' ? 'Buy Now' : language === 'hi' ? 'अभी खरीदें' : 'आताच खरेदी करा'}
               </Button>
             </motion.div>
+          </div>
+
+          {/* Farmer-Friendly Direct Action Buttons */}
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-4 border-2 border-green-300 space-y-3">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-green-700" />
+              <span className="text-xs font-bold text-green-900 uppercase tracking-wide">
+                {language === 'en'
+                  ? 'Quick Order for Farmers'
+                  : language === 'hi'
+                  ? 'किसानों के लिए आसान ऑर्डर'
+                  : 'शेतकऱ्यांसाठी थेट सोपे पर्याय'}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {/* WhatsApp Order Button */}
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleWhatsAppOrder}
+                className="flex items-center justify-center gap-2 bg-[#25d366] hover:bg-[#20ba5a] text-white py-3 px-4 rounded-xl font-bold text-sm shadow-md transition-all"
+              >
+                <MessageCircle className="h-5 w-5 shrink-0" />
+                <span>
+                  {language === 'en'
+                    ? 'Order on WhatsApp'
+                    : language === 'hi'
+                    ? 'WhatsApp पर ऑर्डर करें'
+                    : 'WhatsApp वर थेट ऑर्डर करा'}
+                </span>
+              </motion.button>
+
+              {/* Direct Call Button */}
+              <motion.a
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                href="tel:+917219437160"
+                className="flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-white py-3 px-4 rounded-xl font-bold text-sm shadow-md transition-all"
+              >
+                <Phone className="h-5 w-5 shrink-0" />
+                <span>
+                  {language === 'en'
+                    ? 'Call Inquiry'
+                    : language === 'hi'
+                    ? 'कॉल पूछताछ'
+                    : 'फोन चौकशी'}
+                </span>
+              </motion.a>
+            </div>
+
+            <p className="text-[11px] text-green-800 text-center font-medium">
+              💡{' '}
+              {language === 'en'
+                ? 'Unsure about dosage or crop suitability? Call Store Helpline for free expert advice!'
+                : language === 'hi'
+                ? 'डोज या इस्तेमाल का तरीका नहीं पता? स्टोर हेल्पलाइन पर मुफ्त सलाह लें!'
+                : 'डोस किंवा फवारणीचे प्रमाण माहित नाही? मोफत सल्ल्यासाठी हेल्पलाइनवर थेट फोन करा!'}
+            </p>
           </div>
 
           {/* Features */}
