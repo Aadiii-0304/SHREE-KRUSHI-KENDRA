@@ -75,41 +75,32 @@ interface PaymentOptions {
 
 export const initiateRazorpayPayment = async (options: PaymentOptions): Promise<void> => {
   let activeKeyId = options.key || getRazorpayKeyId();
-  let simulated = isSimulatedMode();
 
   try {
     const settings = await fetchPaymentSettings();
     if (settings.razorpayKeyId) {
       activeKeyId = options.key || cleanRazorpayKey(settings.razorpayKeyId);
-      simulated = settings.simulatedMode;
     }
   } catch (error) {
-    console.warn('Failed to fetch payment settings from backend, falling back to local:', error);
+    console.warn('Failed to fetch payment settings from backend, falling back to local/env:', error);
   }
 
-  // Only use simulated mock flow if we absolutely have no real/test key configured
-  const hasRealKey = activeKeyId && activeKeyId !== 'rzp_test_YOUR_KEY_ID' && activeKeyId.startsWith('rzp_');
-
-  if (simulated && !hasRealKey) {
-    console.log('Using mock payment flow because simulated payment mode is active and no real/test key is configured.');
-    toast.info('Razorpay Key not configured. Using simulated payment...');
-
-    // Simulate a brief delay for payment processing
-    setTimeout(() => {
-      options.onSuccess({
-        razorpay_payment_id: `pay_mock_${Math.random().toString(36).substring(2, 11)}`,
-        razorpay_order_id: options.orderId || `order_mock_${Math.random().toString(36).substring(2, 11)}`,
-        razorpay_signature: `sig_mock_${Math.random().toString(36).substring(2, 11)}`
-      });
-    }, 1500);
+  // Ensure valid Key ID is available
+  if (!activeKeyId || activeKeyId.includes('YOUR_KEY') || !activeKeyId.startsWith('rzp_')) {
+    const err = new Error('Razorpay Key ID is not configured. Please set VITE_RAZORPAY_KEY_ID in .env or backend settings.');
+    toast.error(err.message);
+    if (options.onFailure) {
+      options.onFailure(err);
+    }
     return;
   }
 
   const isLoaded = await loadRazorpayScript();
 
   if (!isLoaded) {
+    const err = new Error('Failed to load Razorpay Checkout SDK. Please check your internet connection.');
     if (options.onFailure) {
-      options.onFailure(new Error('Failed to load Razorpay SDK'));
+      options.onFailure(err);
     }
     return;
   }
@@ -119,20 +110,22 @@ export const initiateRazorpayPayment = async (options: PaymentOptions): Promise<
     amount: Math.round(options.amount * 100), // Convert to paise (INR)
     currency: options.currency || 'INR',
     name: 'Shree Krushi Kendra',
-    description: options.description || 'Secure Payment',
+    description: options.description || 'Agricultural Inputs Payment',
     image: '/logo.png',
     order_id: options.orderId,
     handler: options.onSuccess,
     prefill: {
-      ...(options.prefill || {}),
-      method: options.method, // Pass pre-selected method
+      name: options.prefill?.name || '',
+      email: options.prefill?.email || '',
+      contact: options.prefill?.contact || '',
+      ...(options.method ? { method: options.method } : {}),
     },
     notes: {
       merchant: 'Shree Krushi Kendra',
       address: 'Jamod, Maharashtra 443402',
     },
     theme: {
-      color: '#16a34a', // Green color matching the theme
+      color: '#16a34a', // Brand green matching Shree Krushi Kendra
     },
     modal: {
       ondismiss: () => {
@@ -144,6 +137,21 @@ export const initiateRazorpayPayment = async (options: PaymentOptions): Promise<
   };
 
   const razorpayInstance = new window.Razorpay(razorpayOptions);
+
+  // Capture payment failure callback from Razorpay
+  if (razorpayInstance.on) {
+    razorpayInstance.on('payment.failed', function (response: any) {
+      const errorMsg =
+        response?.error?.description ||
+        response?.error?.reason ||
+        'Payment failed on gateway';
+      console.warn('[Razorpay] Payment failed event:', response?.error);
+      if (options.onFailure) {
+        options.onFailure(new Error(errorMsg));
+      }
+    });
+  }
+
   razorpayInstance.open();
 };
 
@@ -156,15 +164,19 @@ export interface RazorpayOrderResponse {
   simulated?: boolean;
 }
 
-export const createRazorpayOrder = async (amount: number): Promise<RazorpayOrderResponse> => {
+export const createRazorpayOrder = async (
+  amount: number,
+  items?: any[],
+  customerInfo?: { name?: string; email?: string; phone?: string; address?: string }
+): Promise<RazorpayOrderResponse> => {
   try {
-    const response = await createRealRazorpayOrder(amount);
+    const response = await createRealRazorpayOrder(amount, items, customerInfo);
     if (!response || !response.id) {
       throw new Error('Invalid order response from backend');
     }
     return response;
   } catch (error: any) {
-    console.error('Failed to create real Razorpay order:', error);
+    console.error('Failed to create Razorpay order:', error);
     throw new Error(error.message || 'Failed to create payment order. Please ensure the backend is running.');
   }
 };

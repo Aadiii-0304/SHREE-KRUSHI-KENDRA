@@ -19,10 +19,12 @@ import {
   ShieldCheck,
   ArrowLeft,
   ShoppingBag,
-  CheckCircle2
+  CheckCircle2,
+  QrCode,
+  Smartphone
 } from 'lucide-react';
 
-type PaymentMethodType = 'airtel' | 'card' | 'netbanking' | 'wallet' | 'cod';
+type PaymentMethodType = 'upi' | 'card' | 'netbanking' | 'wallet' | 'airtel' | 'cod';
 
 export const CheckoutPage: React.FC = () => {
   const { cart, getCartTotal, clearCart } = useCart();
@@ -30,7 +32,7 @@ export const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
 
   const [processing, setProcessing] = useState(false);
-  const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType>('airtel');
+  const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType>('upi');
 
   const [formData, setFormData] = useState({
     name: user?.name || '',
@@ -151,25 +153,40 @@ export const CheckoutPage: React.FC = () => {
       return;
     }
 
-    // Online Payments via Razorpay Checkout (Cards, Netbanking, Airtel, Wallets)
+    // Online Payments via Razorpay Checkout (UPI, Cards, Netbanking, Wallets)
     setProcessing(true);
 
     try {
-      const orderResponse = await createRazorpayOrder(totalAmount);
+      const cartItemsPayload = cart.map(item => ({
+        productId: item.product.id,
+        quantity: item.quantity,
+        price: item.selectedVariant?.price || item.product.price,
+        selectedVariant: item.selectedVariant,
+      }));
+
+      const customerPayload = {
+        name: formData.name,
+        email: formData.email || user?.email || '',
+        phone: formData.mobile,
+        address: formData.address,
+      };
+
+      const orderResponse = await createRazorpayOrder(totalAmount, cartItemsPayload, customerPayload);
       const { order_id, key } = orderResponse;
 
       const methodMap: Record<string, string> = {
-        airtel: 'netbanking',
+        upi: 'upi',
         card: 'card',
         netbanking: 'netbanking',
         wallet: 'wallet',
+        airtel: 'netbanking',
       };
 
       await initiateRazorpayPayment({
         key: key,
         amount: totalAmount,
         name: 'Shree Krushi Kendra',
-        description: 'Secure Payment',
+        description: 'Agricultural Inputs Payment',
         orderId: order_id,
         method: methodMap[selectedMethod] || undefined,
         prefill: {
@@ -187,33 +204,34 @@ export const CheckoutPage: React.FC = () => {
 
             if (isVerified) {
               await finalizeOrder(
-                selectedMethod,
+                selectedMethod.toUpperCase(),
                 'paid',
                 response.razorpay_payment_id,
                 response.razorpay_order_id || order_id
               );
             } else {
               setProcessing(false);
-              toast.error('Payment verification failed.');
+              toast.error('Payment verification failed on server. Transaction rejected.');
             }
-          } catch (err) {
+          } catch (err: any) {
             setProcessing(false);
-            toast.error('Payment verification error.');
+            toast.error(err?.message || 'Payment signature verification error.');
           }
         },
         onFailure: (error) => {
           setProcessing(false);
-          if (error && error.message === 'Payment cancelled by user') {
-            toast.error('Payment cancelled');
+          const errorMsg = error?.message || 'Payment failed';
+          if (errorMsg.includes('cancelled')) {
+            toast.info('Payment was cancelled. You can retry anytime.');
           } else {
-            toast.error('Payment failed. Please try again.');
+            toast.error(`Payment failed: ${errorMsg}`);
           }
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       setProcessing(false);
       console.error('Error initiating payment:', error);
-      toast.error('Failed to initiate payment. Please try again.');
+      toast.error(error?.message || 'Failed to initiate payment. Please check server status.');
     }
   };
 
@@ -334,32 +352,43 @@ export const CheckoutPage: React.FC = () => {
                   </span>
                 </div>
 
-                {/* Recommended Airtel Option */}
+                {/* Recommended UPI / QR Option */}
                 <div>
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Recommended Option</p>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Recommended Option (Fastest)</p>
+                    <span className="text-[11px] bg-green-100 text-green-800 font-bold px-2 py-0.5 rounded-full">
+                      Zero Processing Fee
+                    </span>
+                  </div>
                   <div
-                    onClick={() => setSelectedMethod('airtel')}
-                    className={`cursor-pointer rounded-xl border-2 p-4 transition-all ${
-                      selectedMethod === 'airtel'
-                        ? 'border-green-600 bg-green-50/50 shadow-sm'
+                    onClick={() => setSelectedMethod('upi')}
+                    className={`cursor-pointer rounded-xl border-2 p-4 transition-all ${selectedMethod === 'upi'
+                        ? 'border-green-600 bg-green-50/60 shadow-sm'
                         : 'border-gray-200 hover:border-gray-300 bg-white'
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="p-2.5 rounded-lg bg-red-100 text-red-700 font-bold text-xs uppercase">
-                          Airtel
+                        <div className="p-2.5 rounded-lg bg-emerald-600 text-white font-bold flex items-center justify-center">
+                          <QrCode className="h-5 w-5" />
                         </div>
                         <div>
-                          <div className="font-semibold text-gray-900 text-sm">Airtel Payments Bank</div>
-                          <div className="text-xs text-gray-500">Fast & Secure Netbanking Solution</div>
+                          <div className="font-bold text-gray-900 text-sm flex items-center gap-2">
+                            <span>UPI / QR Code</span>
+                            <span className="text-[10px] bg-yellow-400 text-gray-900 font-extrabold px-1.5 py-0.2 rounded">
+                              Instant
+                            </span>
+                          </div>
+                          <div className="text-xs text-gray-600 font-medium">
+                            Google Pay, PhonePe, Paytm, BHIM, or Scan QR
+                          </div>
                         </div>
                       </div>
                       <input
                         type="radio"
                         name="payment_method"
-                        checked={selectedMethod === 'airtel'}
-                        onChange={() => setSelectedMethod('airtel')}
+                        checked={selectedMethod === 'upi'}
+                        onChange={() => setSelectedMethod('upi')}
                         className="h-5 w-5 text-green-600 focus:ring-green-500 cursor-pointer"
                       />
                     </div>
@@ -368,16 +397,15 @@ export const CheckoutPage: React.FC = () => {
 
                 {/* All Payment Options Section */}
                 <div className="space-y-3 pt-2">
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">All Payment Options</p>
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Other Payment Options</p>
 
                   {/* 1. Cards */}
                   <div
                     onClick={() => setSelectedMethod('card')}
-                    className={`cursor-pointer rounded-xl border p-4 transition-all flex items-center justify-between ${
-                      selectedMethod === 'card'
+                    className={`cursor-pointer rounded-xl border p-4 transition-all flex items-center justify-between ${selectedMethod === 'card'
                         ? 'border-green-600 bg-green-50/40 font-medium'
                         : 'border-gray-200 hover:border-gray-300 bg-white'
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center gap-3">
                       <div className="p-2 rounded-lg bg-blue-50 text-blue-600">
@@ -400,11 +428,10 @@ export const CheckoutPage: React.FC = () => {
                   {/* 2. Net Banking */}
                   <div
                     onClick={() => setSelectedMethod('netbanking')}
-                    className={`cursor-pointer rounded-xl border p-4 transition-all flex items-center justify-between ${
-                      selectedMethod === 'netbanking'
+                    className={`cursor-pointer rounded-xl border p-4 transition-all flex items-center justify-between ${selectedMethod === 'netbanking'
                         ? 'border-green-600 bg-green-50/40 font-medium'
                         : 'border-gray-200 hover:border-gray-300 bg-white'
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center gap-3">
                       <div className="p-2 rounded-lg bg-purple-50 text-purple-600">
@@ -424,14 +451,39 @@ export const CheckoutPage: React.FC = () => {
                     />
                   </div>
 
-                  {/* 3. Mobile Wallets */}
+                  {/* 3. Airtel Payments Bank */}
                   <div
-                    onClick={() => setSelectedMethod('wallet')}
-                    className={`cursor-pointer rounded-xl border p-4 transition-all flex items-center justify-between ${
-                      selectedMethod === 'wallet'
+                    onClick={() => setSelectedMethod('airtel')}
+                    className={`cursor-pointer rounded-xl border p-4 transition-all flex items-center justify-between ${selectedMethod === 'airtel'
                         ? 'border-green-600 bg-green-50/40 font-medium'
                         : 'border-gray-200 hover:border-gray-300 bg-white'
-                    }`}
+                      }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-red-100 text-red-700 font-bold text-xs uppercase">
+                        Airtel
+                      </div>
+                      <div>
+                        <div className="font-semibold text-gray-900 text-sm">Airtel Payments Bank</div>
+                        <div className="text-xs text-gray-500">Fast & Secure Netbanking Solution</div>
+                      </div>
+                    </div>
+                    <input
+                      type="radio"
+                      name="payment_method"
+                      checked={selectedMethod === 'airtel'}
+                      onChange={() => setSelectedMethod('airtel')}
+                      className="h-4 w-4 text-green-600 focus:ring-green-500 cursor-pointer"
+                    />
+                  </div>
+
+                  {/* 4. Mobile Wallets */}
+                  <div
+                    onClick={() => setSelectedMethod('wallet')}
+                    className={`cursor-pointer rounded-xl border p-4 transition-all flex items-center justify-between ${selectedMethod === 'wallet'
+                        ? 'border-green-600 bg-green-50/40 font-medium'
+                        : 'border-gray-200 hover:border-gray-300 bg-white'
+                      }`}
                   >
                     <div className="flex items-center gap-3">
                       <div className="p-2 rounded-lg bg-pink-50 text-pink-600">
@@ -451,14 +503,13 @@ export const CheckoutPage: React.FC = () => {
                     />
                   </div>
 
-                  {/* 4. Cash on Delivery */}
+                  {/* 5. Cash on Delivery */}
                   <div
                     onClick={() => setSelectedMethod('cod')}
-                    className={`cursor-pointer rounded-xl border p-4 transition-all flex items-center justify-between ${
-                      selectedMethod === 'cod'
+                    className={`cursor-pointer rounded-xl border p-4 transition-all flex items-center justify-between ${selectedMethod === 'cod'
                         ? 'border-green-600 bg-green-50/40 font-medium'
                         : 'border-gray-200 hover:border-gray-300 bg-white'
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center gap-3">
                       <div className="p-2 rounded-lg bg-orange-50 text-orange-600">

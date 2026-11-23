@@ -3,7 +3,7 @@ import { Product } from '../types';
 import { products as fallbackProducts } from '../data/products';
 
 const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-const API_BASE_URL = isLocal 
+const API_BASE_URL = isLocal
   ? 'http://localhost:8000/make-server-dfeaf20d'
   : `https://${projectId}.supabase.co/functions/v1/make-server-dfeaf20d`;
 
@@ -31,7 +31,7 @@ export const fetchProducts = async (params?: {
   if (params?.offset) queryParams.append('offset', params.offset.toString());
 
   const url = `${API_BASE_URL}/products${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-  
+
   try {
     const response = await fetch(url, {
       headers: getHeaders(),
@@ -40,7 +40,7 @@ export const fetchProducts = async (params?: {
     if (response.ok) {
       const data = await response.json();
       const hasFilters = params?.category || params?.search || params?.brand || params?.crop;
-      
+
       if (data.products && data.products.length > 0 && (hasFilters || data.products.length >= fallbackProducts.length)) {
         return data;
       }
@@ -285,26 +285,61 @@ export const savePaymentSettings = async (settings: PaymentSettings): Promise<{ 
   return response.json();
 };
 
-export const createRealRazorpayOrder = async (amount: number): Promise<{ id: string; order_id: string; amount: number; currency: string; key: string; simulated?: boolean }> => {
-  const response = await fetch(`${API_BASE_URL}/api/create-order`, {
-    method: 'POST',
-    headers: getHeaders(),
-    body: JSON.stringify({
-      amount: Math.round(amount * 100), // convert to paise
-      currency: 'INR',
-      receipt: `receipt_${Date.now()}`
-    }),
-  });
-  if (!response.ok) {
-    const err = await response.json();
-    throw new Error(err.error || 'Failed to create Razorpay order');
+export const createRealRazorpayOrder = async (
+  amount: number,
+  items?: any[],
+  customerInfo?: { name?: string; email?: string; phone?: string; address?: string }
+): Promise<{ id: string; order_id: string; amount: number; currency: string; key: string; simulated?: boolean }> => {
+  const url = `${API_BASE_URL}/create-razorpay-order`;
+  let response: Response;
+
+  try {
+    response = await fetch(url, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({
+        amount: Math.round(amount * 100), // paise
+        currency: 'INR',
+        receipt: `rcpt_${Date.now().toString(36)}`,
+        items,
+        customerInfo,
+      }),
+    });
+  } catch (netErr: any) {
+    // If /create-razorpay-order direct path had issue, try fallback path
+    try {
+      response = await fetch(`${API_BASE_URL}/api/create-order`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({
+          amount: Math.round(amount * 100),
+          currency: 'INR',
+          receipt: `rcpt_${Date.now().toString(36)}`,
+          items,
+          customerInfo,
+        }),
+      });
+    } catch {
+      throw new Error('Cannot connect to payment backend server. Please verify the server is running on port 8000.');
+    }
   }
+
+  if (!response.ok) {
+    let errMsg = 'Failed to create Razorpay order';
+    try {
+      const err = await response.json();
+      errMsg = err.details || err.error || errMsg;
+    } catch {
+      errMsg = `Payment server returned error (${response.status}: ${response.statusText})`;
+    }
+    throw new Error(errMsg);
+  }
+
   const data = await response.json();
-  // Map order_id to id for frontend compatibility
   return {
     ...data,
     id: data.order_id || data.id,
-    order_id: data.order_id || data.id
+    order_id: data.order_id || data.id,
   };
 };
 
@@ -312,20 +347,48 @@ export const verifyRealPaymentSignature = async (
   orderId: string,
   paymentId: string,
   signature: string
-): Promise<{ verified: boolean; simulated?: boolean }> => {
-  const response = await fetch(`${API_BASE_URL}/api/verify-payment`, {
-    method: 'POST',
-    headers: getHeaders(),
-    body: JSON.stringify({
-      order_id: orderId,
-      payment_id: paymentId,
-      signature: signature
-    }),
-  });
-  if (!response.ok) {
-    const err = await response.json();
-    throw new Error(err.error || 'Failed to verify payment');
+): Promise<{ verified: boolean; simulated?: boolean; message?: string }> => {
+  const url = `${API_BASE_URL}/verify-razorpay-payment`;
+  let response: Response;
+
+  try {
+    response = await fetch(url, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({
+        order_id: orderId,
+        payment_id: paymentId,
+        signature: signature,
+      }),
+    });
+  } catch {
+    // Fallback path attempt
+    try {
+      response = await fetch(`${API_BASE_URL}/api/verify-payment`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({
+          order_id: orderId,
+          payment_id: paymentId,
+          signature: signature,
+        }),
+      });
+    } catch {
+      throw new Error('Connection failed during payment signature verification. Please contact support.');
+    }
   }
+
+  if (!response.ok) {
+    let errMsg = 'Payment signature verification failed';
+    try {
+      const err = await response.json();
+      errMsg = err.details || err.error || errMsg;
+    } catch {
+      errMsg = `Verification failed (${response.status}: ${response.statusText})`;
+    }
+    throw new Error(errMsg);
+  }
+
   return response.json();
 };
 
